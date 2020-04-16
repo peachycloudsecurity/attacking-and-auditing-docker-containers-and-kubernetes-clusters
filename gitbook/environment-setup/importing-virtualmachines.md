@@ -10,7 +10,7 @@ The students need to import two virtual machines for docker labs
 
 | VM Name | Source URL |
 |---------|------------|
-| docker-student.ova | http://www.mediafire.com/file/72xe4d4vv10fgxz/docker-student.ova/file |
+| docker-student.ova | http://www.mediafire.com/file/3x1tgszet5blaz9/docker-student.ova.zip/file |
 | docker-ctf.ova | http://www.mediafire.com/file/39e1w5wt7tmxr43/docker-ctf.ova/file |
 
 The `checksums` are available at `http://www.mediafire.com/file/6xp3c7voy60zn1e/checksum.txt/file`
