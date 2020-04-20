@@ -37,34 +37,34 @@ The training requires following components
 
 | Content       | Description                                                                 |
 | ------------- | --------------------------------------------------------------------------- |
-| `gitbook`     | Complete documentation for training                                         |
+| `mdbook`      | Complete documentation for training                                         |
 | `infra-setup` | Scripts for setting up vulnerable Kubernetes infrastructure in Google Cloud |
 
 ## Getting Started
 
 1. Clone this repo
-2. Start the Gitbook server
-3. Follow the gitbook
+2. Start the mdBook server
+3. Follow the mdbook
 
-### Starting Gitbook Server
+### Starting mdBook Server
 
-Install `gitbook-cli`
-
-```
-npm install -g gitbook-cli
-```
-
-Start Gitbook to serve locally
+* Install `mdbook` using cargo using below command. Also binaries and other methods of installation can be found at [mdBook docs](https://github.com/rust-lang/mdBook)
 
 ```
-cd gitbook && gitbook serve
+cargo install mdbook
 ```
 
-Navigate to `http://localhost:4000`
+* Start mdBook to serve locally
+
+```
+cd mdbook && mdbook serve
+```
+
+* Navigate to `http://localhost:3000`
 
 ## License
 
-* Documentation and Gitbook are released under [Creative Commons Attribution Share Alike 4.0 International](CC-BY-SA-LICENSE.txt)
+* Documentation and mdbook are released under [Creative Commons Attribution Share Alike 4.0 International](CC-BY-SA-LICENSE.txt)
 * Lab material including any code, script are release under [MIT License](MIT-LICENSE.txt)
 
 ## About Appsecco
