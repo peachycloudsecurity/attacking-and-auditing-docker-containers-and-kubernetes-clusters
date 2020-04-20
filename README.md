@@ -48,7 +48,7 @@ The training requires following components
 
 ### Starting mdBook Server
 
-* Install `mdbook` using cargo using below command. Also binaries and other methods of installation can be found at [mdBook docs](https://github.com/rust-lang/mdBook)
+* Install `mdbook` with `cargo` using below command. Also binaries and other methods of installation can be found at [mdBook docs](https://github.com/rust-lang/mdBook)
 
 ```
 cargo install mdbook
