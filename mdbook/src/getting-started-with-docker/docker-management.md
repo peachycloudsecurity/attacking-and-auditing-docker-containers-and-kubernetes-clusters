@@ -29,21 +29,27 @@ docker history jess/htop
 
 ![docker history](images/docker-history.png)
 
-## Stoping and remove container
+## Stopping and removing container
 
-* Let's run a nginx container
+* Let's run an `nginx` container
 
 ```bash
 docker run --name dummynginx -d nginx:alpine
 ```
 
-* Identify the container name or id using `docker ps`
+* To remove a container, it has to be stopped. Stop the running container by container name or id
 
 ```bash
 docker stop dummynginx
 ```
 
-* To remove container, it has to be stopped. Then runt he below command
+* If you do not remember container name or id, run following command
+
+```bash
+docker ps -a
+```
+
+* Once stopped, run the below command
 
 ```bash
 docker rm dummynginx
