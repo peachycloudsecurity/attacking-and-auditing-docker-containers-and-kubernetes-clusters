@@ -2,7 +2,7 @@
 
 ## SSH into the student machine
 
-* Run the following command from your terminal. Make sure you replace the `CTFVMIP` ip address with your student vm ip address
+* Run the following command from your terminal. Make sure you replace the `STUDENTVMIP` ip address with your student vm ip address
 
 ```bash
 ssh student@STUDENTVMIP
