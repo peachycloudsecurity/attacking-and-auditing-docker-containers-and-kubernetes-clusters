@@ -157,4 +157,4 @@
 * [Terminology Glossary](terminology-glossary.md)
 
 -----------
-[About Appsecco](about-us/about-appsecco.md)
+[License](about-us/license.md)

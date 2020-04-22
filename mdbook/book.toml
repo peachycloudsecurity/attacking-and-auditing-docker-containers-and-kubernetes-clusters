@@ -5,3 +5,6 @@ description = "Appsecco training course content on Attacking and Auditing Docker
 language = "en"
 multilingual = false
 src = "src"
+
+[output.html]
+google-analytics = "UA-15752161-2"

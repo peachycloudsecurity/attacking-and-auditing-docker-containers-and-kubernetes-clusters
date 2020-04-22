@@ -1,1 +1,1 @@
-![cover page](cover.jpg)
+# Attacking & Auditing Docker Containers & Kubernetes Clusters Workshop

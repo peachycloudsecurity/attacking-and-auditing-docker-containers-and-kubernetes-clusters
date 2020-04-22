@@ -5,6 +5,8 @@ The students need to import two virtual machines for docker labs
 1. `docker-student.ova`
 2. `docker-ctf.ova`
 
+> **NOTE**: In case of `VBOX_E_FILE_ERROR (0x80BB0004)` error during VM import, ensure you are importing a VM with file extension `.ova`.
+
 
 ## Download VM
 
