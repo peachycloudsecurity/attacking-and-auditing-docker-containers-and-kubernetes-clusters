@@ -103,12 +103,23 @@ kubectl wait --namespace kube-system \
 
 
 # Install mailbox-service chart
+cat << EOF > config.json
+{
+    "auths": {
+        "https://gcr.io": {
+            "auth": "dXNlcm5hbWU6cGFzc3dvcmQ="
+        }
+    }
+}
+EOF
 kubectl create secret generic privateregistrycreds \
-    --from-literal=.dockerconfigjson='{"auths":{"https://index.docker.io/v1/":{"auth":"dXNlcm5hbWU6cGFzc3dvcmQ="}}}' \
+    --from-file=.dockerconfigjson=config.json \
     --type=kubernetes.io/dockerconfigjson
 
 echo "Installing mailbox-service Helm chart..."
 helm install mailbox-service Helm-Charts/mailbox-service/
+rm config.json
+
 
 # Install connectivity-check chart
 echo "Installing connectivity-check Helm chart..."
