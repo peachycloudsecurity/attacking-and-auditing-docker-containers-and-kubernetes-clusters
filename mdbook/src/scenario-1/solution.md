@@ -17,7 +17,7 @@
 
 ![](images/path-traversal-exploitation.png)
 
-* Similarly we can read other sensitive files in the system and find that the system contains `/root/.docker/config.json` with payload `qqqqq/../../root/.docker/config.json`
+* Similarly we can read other sensitive files in the system and find that the system contains `root/.docker/.dockerconfigjson` with payload `qqqqq/../../root/.docker/.dockerconfigjson`
 
 ![](images/docker-config.png)
 
