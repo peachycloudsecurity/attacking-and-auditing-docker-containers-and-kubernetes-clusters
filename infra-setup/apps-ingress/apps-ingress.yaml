@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: apps-ingress
@@ -11,20 +11,29 @@ spec:
     http:
       paths:
       - path: /
+        pathType: Prefix
         backend:
-          serviceName: mailbox-service
-          servicePort: 80
+          service:
+            name: mailbox-service
+            port:
+              number: 80
   - host: server-health.oss-k8s-security.cloudsec.training
     http:
       paths:
       - path: /
+        pathType: Prefix
         backend:
-          serviceName: server-health
-          servicePort: 80
+          service:
+            name: server-health
+            port:
+              number: 80
   - host: connectivity-check.oss-k8s-security.cloudsec.training
     http:
       paths:
       - path: /
+        pathType: Prefix
         backend:
-          serviceName: connectivity-check
-          servicePort: 80
+          service:
+            name: connectivity-check
+            port:
+              number: 80
