@@ -23,13 +23,6 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # Custom Stuff for Volume Mount of Docker Socket
-          volumeMounts:
-            - mountPath: /custom/docker/docker.sock
-              name: docker-sock-volume
-          securityContext:
-            privileged: true
-          # End Custom Stuff
           ports:
             - name: http
               containerPort: 80
@@ -58,10 +51,3 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      # Custom Stuff
-      volumes:
-        - name: docker-sock-volume
-          hostPath:
-            path: /var/run/docker.sock
-            type: File
-      # End Custom
