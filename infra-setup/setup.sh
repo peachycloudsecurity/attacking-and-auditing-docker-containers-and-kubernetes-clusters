@@ -101,7 +101,12 @@ kubectl wait --namespace kube-system \
   --selector=app.kubernetes.io/name=ingress-nginx \
   --timeout=120s
 
+
 # Install mailbox-service chart
+kubectl create secret generic privateregistrycreds \
+    --from-literal=.dockerconfigjson='{"auths":{"https://index.docker.io/v1/":{"auth":"dXNlcm5hbWU6cGFzc3dvcmQ="}}}' \
+    --type=kubernetes.io/dockerconfigjson
+
 echo "Installing mailbox-service Helm chart..."
 helm install mailbox-service Helm-Charts/mailbox-service/
 
