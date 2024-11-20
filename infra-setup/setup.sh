@@ -1,45 +1,121 @@
 #!/bin/bash
 
-export STUDENTCLUSTERNAME='k8s-training-cluster'
+# Variables
+export STUDENTCLUSTERNAME='k8s-training-cluster-1'
 export STUDENTREGION='us-central1'
 export STUDENTCLUSTER_MIN_NODES='2'
 export STUDENTCLUSTER_MAX_NODES='3'
-export STUDENTCLUSTER_VERSION='1.14.10-gke.27'
+export STUDENTCLUSTER_VERSION='1.28.14-gke.1217000' # Updated Kubernetes version
 
 if [ -z "$STUDENTPROJECTNAME" ]; then
-  export STUDENTPROJECTNAME='<Add-Project-Name>'
+  echo "Please set the STUDENTPROJECTNAME environment variable."
+  exit 1
 fi
 
-## Set working directory
-cd `dirname $0`
+# Set working directory
+cd "$(dirname "$0")" || exit
 
-## Cluster creation
+# Cluster creation
+echo "Creating Kubernetes cluster..."
+gcloud container clusters create "$STUDENTCLUSTERNAME" \
+  --project "$STUDENTPROJECTNAME" \
+  --zone "$STUDENTREGION-a" \
+  --no-enable-basic-auth \
+  --cluster-version "$STUDENTCLUSTER_VERSION" \
+  --machine-type "e2-medium" \
+  --image-type "COS_CONTAINERD" \
+  --disk-type "pd-standard" \
+  --disk-size "50" \
+  --metadata disable-legacy-endpoints=true \
+  --scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" \
+  --preemptible \
+  --num-nodes "2" \
+  --logging=SYSTEM,WORKLOAD \
+  --monitoring=SYSTEM \
+  --no-enable-ip-alias \
+  --network "projects/$STUDENTPROJECTNAME/global/networks/default" \
+  --subnetwork "projects/$STUDENTPROJECTNAME/regions/$STUDENTREGION/subnetworks/default" \
+  --enable-autoscaling \
+  --min-nodes "$STUDENTCLUSTER_MIN_NODES" \
+  --max-nodes "$STUDENTCLUSTER_MAX_NODES" \
+  --addons HorizontalPodAutoscaling,HttpLoadBalancing \
+  --no-enable-autoupgrade \
+  --no-enable-autorepair \
+  --maintenance-window "18:30"
 
-gcloud beta container --project "$STUDENTPROJECTNAME" clusters create "$STUDENTCLUSTERNAME" --zone "$STUDENTREGION-a" --no-enable-basic-auth --cluster-version $STUDENTCLUSTER_VERSION --machine-type "g1-small" --image-type "UBUNTU" --disk-type "pd-standard" --disk-size "50" --metadata flag=59a4c760306d682ca75d690bebb9db0e,disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" --preemptible --num-nodes "2" --enable-stackdriver-kubernetes --no-enable-ip-alias --network "projects/$STUDENTPROJECTNAME/global/networks/default" --subnetwork "projects/$STUDENTPROJECTNAME/regions/$STUDENTREGION/subnetworks/default" --enable-autoscaling --min-nodes $STUDENTCLUSTER_MIN_NODES --max-nodes $STUDENTCLUSTER_MAX_NODES --addons HorizontalPodAutoscaling,HttpLoadBalancing --no-enable-autoupgrade --no-enable-autorepair --maintenance-window "18:30"
+if [ $? -ne 0 ]; then
+  echo "Failed to create the Kubernetes cluster."
+  exit 1
+fi
 
-gcloud compute addresses create $STUDENTCLUSTERNAME-sip --region $STUDENTREGION --project $STUDENTPROJECTNAME
-export STUDENTCLUSTERSIP=$(gcloud compute addresses list --project=$STUDENTPROJECTNAME --filter "name=$STUDENTCLUSTERNAME-sip" | grep $STUDENTCLUSTERNAME-sip | awk '{print $2}')
+# Create a static IP address if it doesn't exist
+echo "Creating static IP address..."
+if ! gcloud compute addresses describe "$STUDENTCLUSTERNAME-sip" --region "$STUDENTREGION" --project "$STUDENTPROJECTNAME" &>/dev/null; then
+  gcloud compute addresses create "$STUDENTCLUSTERNAME-sip" \
+    --region "$STUDENTREGION" \
+    --project "$STUDENTPROJECTNAME"
+  if [ $? -ne 0 ]; then
+    echo "Failed to create the static IP address."
+    exit 1
+  fi
+else
+  echo "Static IP address already exists."
+fi
 
-gcloud container clusters get-credentials $STUDENTCLUSTERNAME --zone $STUDENTREGION-a --project $STUDENTPROJECTNAME
+export STUDENTCLUSTERSIP=$(gcloud compute addresses describe "$STUDENTCLUSTERNAME-sip" \
+  --region "$STUDENTREGION" \
+  --project "$STUDENTPROJECTNAME" \
+  --format="value(address)")
 
-## Cluster setup
+echo "Static IP assigned: $STUDENTCLUSTERSIP"
 
-kubectl apply -f helm-rbac/helm-rbac.yaml
-helm2 init --service-account tiller
+# Get cluster credentials
+echo "Fetching cluster credentials..."
+gcloud container clusters get-credentials "$STUDENTCLUSTERNAME" \
+  --zone "$STUDENTREGION-a" \
+  --project "$STUDENTPROJECTNAME"
 
-### Wait for tiller pod to be ready
-sleep 30
+if [ $? -ne 0 ]; then
+  echo "Failed to fetch cluster credentials. Please verify the cluster name and region."
+  exit 1
+fi
 
-helm2 install --namespace kube-system --name nginx-ingress stable/nginx-ingress --set controller.service.externalTrafficPolicy=Local,controller.service.loadBalancerIP=$STUDENTCLUSTERSIP
+echo "Cluster setup completed successfully."
 
-helm2 install --name Helm-Charts/mailbox-service/
-helm2 install --name connectivity-check Helm-Charts/connectivity-check/
-helm2 install --name server-health Helm-Charts/server-health/
+# Add NGINX Ingress repository if not already added
+echo "Adding and updating Helm repositories..."
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+# Install NGINX Ingress Controller
+echo "Installing NGINX Ingress Controller..."
+helm install nginx-ingress ingress-nginx/ingress-nginx \
+  --namespace kube-system \
+  --set controller.service.externalTrafficPolicy=Local \
+  --set controller.service.loadBalancerIP="$STUDENTCLUSTERSIP"
+
+# Wait for NGINX Ingress Controller to be ready
+echo "Waiting for NGINX Ingress Controller to be ready..."
+kubectl wait --namespace kube-system \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/name=ingress-nginx \
+  --timeout=120s
+
+# Install mailbox-service chart
+echo "Installing mailbox-service Helm chart..."
+helm install mailbox-service Helm-Charts/mailbox-service/
+
+# Install connectivity-check chart
+echo "Installing connectivity-check Helm chart..."
+helm install connectivity-check Helm-Charts/connectivity-check/
+
+# Install server-health chart
+echo "Installing server-health Helm chart..."
+helm install server-health Helm-Charts/server-health/
 
 kubectl apply -f code-base/code-base.yaml
 kubectl apply -f net-tools/net-tools.yaml
 kubectl apply -f secrets-db-service/secrets-db-service.yaml
-
 kubectl apply -f apps-ingress/apps-ingress.yaml
 
 ## Generate kubeconfig
